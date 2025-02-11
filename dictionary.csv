@@ -1,0 +1,92 @@
+﻿variable,section,description,model table equivalent,data type[dimensions],estimated,prior (if estimated),bounds
+Nages,data,Number of age classes,-,int,,,
+Ldyr,data,Number of years,-,int,,,
+lht,data,life history type,-,int,,,
+hatchsurv,data,survival of hatchery releases,HatchSurv,real,,,
+ssum,data,early summer survival before spawning,Msum,real,,,
+fhist,data,base historical instantaneous fishing rate,Fhist,real,,,
+bmatt,data,mean of prior for average maturation rate for each age class across years,mato,vector[6],,,
+fec,data,fecundity for each age class,fec,vector[6],,,
+vul,data,mean of prior for vulnerability of each age class to fishing mortality,vulo,vector[6],,,
+mobase,data,mean (and variance input) of prior for baseline mortality for each age class,mo,vector[6],,,
+cwtrelease,data,vector of coded wire tag releases for each year,-,vector[41],,,
+cwtesc,data,coded wire tag escapement for each year and brood year corrected for cwt sampling rate cwtExp (in GetData.R),-,"array[41,6]int",,,
+cwtcat,data,coded wire tag catch for each year and brood year corrected for cwt sampling rate cwtExp (in GetData.R),-,"array[41,6]int",,,
+RelRegF,data,relative trend in fishing mortality over time relative to the estimated base fishing rate - scaling for the fishing mortality because it would be impossible to estimate otherwise,RelRegF,vector[41],,,
+obsescape,data,timeseries of observed escapement data,obsS,vector[41],,,
+propwildspawn,data,proportion of spawners not taken for broodstock,pwsp,vector[41],,,
+hatchrelease,data,timeseries of total smolt releases ,HatchSmolt,vector[42],,,
+seal,data,timeseries of seal data ,X,vector[41],,,
+hatch,data,timeseries of SOG hatchery release data,X,vector[41],,,
+temp,data,timeseries of temperature data,X,vector[41],,,
+bigm,data,timeseries of big mammal data,X,vector[41],,,
+cwtExp,data,coded wire tag sampling rate = 1/cwtExp,CWTexp,real,,,
+so_min,data,"minimum bound for log of the unfished spawning stock size, calculated in GetData.R as log(2.0*max(obsescape)/10000)",so_min,real,,,
+so_mu,data,"mean of the prior for log_so, calculated in GetData.R as log(3*max(obsescape)/10000) ",so_mu,real,,,
+so_sd,data,"sd of the prior for log_so, set to 0.5 in GetData.R",so_sd,real,,,
+maxcr,data,upper bound on compensation ratio cr; set to a value of 10 in GetData.R ,maxcr,real,,,
+tiny,data,"tiny number added to help in liklihood calculation for catch, escapement - not exactly sure why",-,real,,,
+moaddcwt,transformed data,"negative log of hatchery survival rate, used for plotting first year mortality ",-,real,,,
+spawnhist,transformed data,observed escapement data in the first year of the timeseries,-,real,,,
+logobsesc,transformed data,log of observed escapement data,log(obsS),vector[41],,,
+logit_bmatt,transformed data,"logit of bmatt, prior for mean maturation rate for each age class",-,vector[4],,,
+cr,parameters,log of compensation ratio,cr,real,T,"uniform(1,10)","lower = 1, upper = maxcr"
+log_so,parameters,log of unfished spawning stock size (so),so,real,T,"normal(so_mu, so_sd)",lower = so_min
+Mseal,parameters,effect of seal predation on baseline mortality,Mx,real,T,"uniform(0,10)","lower = 0, upper = 10"
+Mhatch,parameters,effect of SOG hatchery releases on baseline mortality,Mx,real,T,"uniform(0,10)","lower = 0, upper = 10"
+Mtemp,parameters,effect of sea surface temperature on baseline mortality,Mx,real,T,"uniform(-10,10)","lower = -10, upper = 10"
+Mbigm,parameters,effect of big marine mammales (sealions and whales?) on baseline mortality,Mx,real,T,"uniform(0,10)","lower = 0, upper = 10"
+mo1est,parameters,"estimated baseline mortality,  for age 1 fish, due to factors that are not expected to change over time",Mo[1],real,T,"normal(mobase, 2*mobase)","lower = 0, upper = 10"
+mo2pest,parameters,"estimated baseline mortality,  for age 2 and greater fish, due to factors that are not expected to change over time",Mo[2],real,T,"normal(mobase, 2*mobase)","lower = 0, upper = 10"
+logit_vulest,parameters,estimated vulnerability parameter in logit space ,-,vector[2],T,"normal(logit(vul), 0.5*abs(logit(vul)))","lower = -5, upper = 5"
+Fbase,parameters,estimated base fishing mortality prior to 1980,Fbase,real,T,"uniform(0,10)","lower = 0, upper = 10"
+wt,parameters,random effect on freshwater mortality rate (egg-smolt mortality rate),wfw,vector[41],T,"normal(0, wt_sd)","lower = -3, upper = 3"
+wto,parameters,random effect in mortality rate that is assumed to be non-zero only for ocean age 1 ,wo,vector[41],T,"normal(0, wto_sd)","lower = -3, upper = 3"
+fanomaly,parameters,random effect on fishing mortality rate,wf,vector[41],T,"normal(0, wf_sd)","lower = -3, upper = 3"
+lnS_sd,parameters,standard deviation for prior on escapement predictions ,lnS_sd,real,T,"gamma(2, 5) ",-
+wt_sd,parameters,standard deviation for prior on egg-smolt mortality rate annual anomalies,wfw_sd,real,T,"gamma(2, 5) ",-
+wto_sd,parameters,standard deviation in age 1 ocean mortality rate annual anomalies,wo_sd,real,T,"gamma(2, 5) ",-
+fanomaly_sd,parameters,standard deviation in annual fishing mortality rate anomalies,wf_sd,real,T,"gamma(2, 5) ",-
+logit_matt,parameters,estimated maturation rate for ages 2:5 for each year,logit_matt,vector[4],T,"normal(est_logit_bmatt, mat_sd)",-
+est_logit_bmatt,parameters,estimated mean maturity in logit space for ages 2:5 across all years,logit_matb,vector[4],T,"normal(logit_bmatt, 2*abs(logit_bmatt))",-
+sd_matt,parameters,standard deviation for prior on logit_matt,mat_sd,vector[4],T,"gamma(2, 5) ",-
+vuluse,transformed parameters,"full vector of vulnerabilities for each age class, with ages 1, 4, 5, 6 fixed, to be used for correct indexing, generated from vulest",-,vector[6],,,
+vulest,transformed parameters,"vector of estimated vulnerabilities for ages 2:3, calculated as inverse logit of logit_vulest",-,vector[2],,,
+mattuse,transformed parameters,"full vector of maturation rates (mean across all years) with ages 1 and 6 fixed, to be used for correct indexing, generate from bmattest",-,vector[6],,,
+bmattest,transformed parameters,"vector of estimated maturation rates (mean across all years) for age classes 2:5, calculated as inverse logit of est_logit_bmatt",-,vector[4],,,
+lo,transformed parameters,unfished survivorship from smolts to age a,L,vector[6],,,
+lhist,transformed parameters,fished survivorship from smolts to age a (calculated using mo2pest and historic fishing rate),-,vector[6],,,
+epro,transformed parameters,unfished egg production per smolt (across all age classes that one smolt would yield) - initialized at 0 and then cumulatively add up age classes ,EPSo,real,,,
+spro,transformed parameters,unfished spawner production per smolt cumulative across all age classes ,spro,real,,,
+sprhist,transformed parameters,historic fished spawner production per smolt cumulative across all age classes,-,real,,,
+memax,transformed parameters,"log of the unfished egg-smolt mortality rate, calculated as the inverse of epro ",MESo,real,,,
+rhist,transformed parameters,"historical recruitment, calculated from historical spawners and historical spawners per smolt",-,real,,,
+so,transformed parameters,unfished spawning stock size in units of 10 000,so,real,,,
+ro,transformed parameters,unfished recruitment calculated from so and sprio,ro,real,,,
+eo,transformed parameters,Total egg production at the average rate of mortality MESo,Eo,real,,,
+mden,transformed parameters,"Ricker b parameter for egg-smolt relationship, calculated from compensation ratio and total egg production eo",b,real,,,
+memin,transformed parameters,Ricker a parameter for minimum egg-smolt mortality at low population density,MESmin,real,,,
+N,transformed parameters,abundance by year and age class,N,array[41]vector[6],,,
+Ncwt,transformed parameters,predicted number of CWT fish alive by year and age,-,"matrix[41,6]",,,
+mo,transformed parameters,"annual ocean mortality for each age class calculated as a sum of mo1est, mo2pest, Mx",M,vector[5],,,
+sfish,transformed parameters,"predicted survival rate from fishing, calculated from vulnerability*fishing mortality rate",-,vector[6],,,
+cyear,transformed parameters,predicted catch at age vector (changes every year),-,vector[6],,,
+syear,transformed parameters,predicted spawners at age for the years (changes every year),-,vector[6],,,
+sageyear,transformed parameters,"matrix of predicted spawners across all years and age classes, copies the syear vector ",-,array[41]vector[6],,,
+ccwt,transformed parameters,predicted coded wire tag catch for each year and age class calculated from Ncwt and fishing survival sfish,"Ca,t",array[41]vector[6],,,
+scwt,transformed parameters,predicted number of spawners with CWT for each year and age class calculated from Ncwt and various mortality rates,"Sa,t",array[41]vector[6],,,
+spawners,transformed parameters,sum of spawners in a given year across all age classes (sum of syear),-,vector[41],,,
+tcatch,transformed parameters,sum of catch in a given year across all age classes (sum of cyear),-,vector[41],,,
+eggtime,transformed parameters,egg production in each year summed across age classes (used for debugging),E,vector[41],,,
+meggyear,transformed parameters,timeseries of egg-smolt mortality rate predicted by ricker relationship,MES,vector[41],,,
+logpredesc,transformed parameters,"log of sum of spawners for each year, plus a ""tiny"" variable, used for the likelihood for logobsesc",-,vector[41],,,
+moplot,transformed parameters,"first year ocean mortality with additional mortality of hatch releases, for plotting first year mortality",-,vector[41],,,
+movpa,transformed parameters,"array of mo variable across each year and age class, copies mo directly",-,array[41]vector[5],,,
+matt,transformed parameters,"calculated inverse logit of estimated logit_matt variable, fixed for age classes 1 and 6, used to calculate spawners at each age/year",-,array[41]vector[6],,,
+ft,transformed parameters,"annual instantaneous fishing mortality rate, sum of estimated base fishing mortality rate (scaled by RelRegF) + fishing anomaly",F,real,,,
+eggs,transformed parameters,variable to accumulate egg production for each age class within a year - then gets copied to eggtime for total egg production timeseries,-,real,,,
+megg,transformed parameters,ricker prediction of egg-smolt mortality rate,-,real,,,
+cbrood,transformed parameters,"array of cwt catches converted to brood year, with ""tiny"" number added for the likelihood calculation",-,array[41]vector[6],,,
+cbrood2,transformed parameters,"array of cwt catches adjusted for cwt sampling rate, converted to brood year, with ""tiny"" number added for the likelihood calculation",-,array[41]vector[6],,,
+ebrood,transformed parameters,"array of cwt escapement converted to brood year, with ""tiny"" number added for the likelihood calculation",-,array[41]vector[6],,,
+ebrood2,transformed parameters,"array of cwt escapement adjust for cwt sampling rate, converted to brood year, with ""tiny"" number added for the likelihood calculation",-,array[41]vector[6],,,
