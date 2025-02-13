@@ -63,3 +63,6 @@ rsconnect/
 
 #Ignore png
 *.png
+
+#Ignore zip file
+*.zip
