@@ -558,8 +558,6 @@ samples_quant_hatchery_scenarios <- readRDS(paste0(OutDir, "Objects/samples_quan
 #Run predation variables 
 if(run_predation == T){
   #Marine predation
-  #futureseal_percs <- ?
-  #together with futurebigm
   #https://www.sararegistry.gc.ca/virtual_sara/files/cosewic/sr_steller_sea_lion_e.pdf
   #stellars increasing at a rate of 3% per year
   #30% increase in the next 10 years? 
@@ -680,9 +678,9 @@ if(run_climate == T){
   
   #futssum, futuretemp
   ssum_percs <- c(0.6, 0.8, 1, 1.2)
-  #See the convoluted section below for back-calculating what the proportion should be
   #increase of 0.4 and 0.8 degrees
   temp_percs <- c(1, 1.255689, 1.511378)
+  #Based on temperature scaling/standardization i back calculated what the %increase should be:
   
   #Run a scenario across all values of futuretemp and futssum
   metrics_list <- list()
