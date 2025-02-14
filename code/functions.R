@@ -1,6 +1,7 @@
 #Functions for East Coast Vancouver Island modelling and forward projection scenarios
 
 
+
 ####Running forward scenario function: 
 #Outputs: metrics, samples 
 run_scenario <- function(scenario_name, relfutureF, fnfutureF, futurehatchrelease, futureseal, futuretemp, futurebigm, 
@@ -27,7 +28,7 @@ run_scenario <- function(scenario_name, relfutureF, fnfutureF, futurehatchreleas
 
   ####Set thresholds 
   #set extinction spawner number
-  Sextinct <- Sextinct #default value of 100 #can make it a vector
+  Sextinct <- Sextinct #this can be read in as a vector of multiple values 
   
   ####Set options for future mortality anomaly patterns
   anomoption <- anomoption #0=none,1=repeat historical, 2=random
@@ -39,7 +40,7 @@ run_scenario <- function(scenario_name, relfutureF, fnfutureF, futurehatchreleas
   ####Set future management parameters
   #(future ocean F)/(average 2018-2020 historical F)
   relfutureF <- relfutureF
-  #future FN fishing rate at river mouth (included in overall F(t) for historical years)
+  #terminal harvest rate (included in overall F(t) for historical years)
   fnfutureF <- fnfutureF 
   #future hatchery releases = multiplier on 2020 releases
   futurehatchrelease <- futurehatchrelease
@@ -514,7 +515,7 @@ run_scenario <- function(scenario_name, relfutureF, fnfutureF, futurehatchreleas
   samples <<- rename(samples, samp = Var1, year = Var2)
   #should output these samples with the correct years 
 
-  #Calculate all the summary metrics - kind of hate this method but here we are now 
+  #Calculate all the summary metrics - not the best method but here we are now 
   metrics <- matrix(nrow = length(Sextinct), ncol = 6)
   rownames(metrics) <- Sextinct
   colnames(metrics) <- c("pextinct_nytot", "pextinct_nysim", "pextinct_firstpolyear", 
@@ -953,7 +954,7 @@ plot_matrix <- function(full_metrics, var1, var2){
   #                      plot.title=element_text(size=11))+
   #   facet_wrap(~threshold)
   
-  #Add values for the p_short metrics
+  #Add values for the p_10 metrics
   p3 <- ggplot(full_metrics[full_metrics$metric == "p_10",], aes(x = .data[[var1]], y = .data[[var2]]))+
     geom_tile(aes(fill=value), color = "grey") +
     #scale_fill_gradient2(low="lightblue4", mid = "white", high="orangered3", midpoint = 0.5) +

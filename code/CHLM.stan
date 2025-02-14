@@ -3,11 +3,7 @@ data {
   int Nages;  //Number of age classes - 6
   int Ldyr;   //41 is last index historic years (1980-2020)
   int lht;    //age offset for life history type (1=fall run outmigrating at age 1, 2=spring run outmigrating at age 2)
- 
-  //real maxhatchprop;//not used. For future scenarios only. Deleste
-  //real smperh;//not used. For future scenarios only. Delete
-  //real smoltsperhatch;//not used. For future scenarios only. Delete
-  
+
   real hatchsurv;//immediate survival after release (the only hatchery survival effect)
   real ssum;//natural survival between maturation and spawning (early summer to arrival at spawning grounds)
   real fhist;//base historical inst. fishing rate
