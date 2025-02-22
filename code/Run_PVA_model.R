@@ -84,6 +84,75 @@ rhat_unconverged <- which(rhat[1:length(rhat)-1]>1.05)
 save(fit_chlm, file = paste0(OutDir,"fit_Pusum.Rdata"))   
 
 
+plot_traceplots = F
+
+if(plot_traceplots == T){
+  #Extract the posterior 
+  posterior <- rstan::extract(fit_chlm, permuted = F)
+  
+  #Plot traceplots for estimated parameters using bayesplot: 
+  library(bayesplot)
+  color_scheme_set("mix-blue-pink")
+  
+  #Ocean mortality parameters
+  mcmc_trace(posterior, pars = c("mo1est", "mo2pest"),facet_args = list(nrow = 2, labeller = label_parsed))+theme_bw()
+  ggsave(filename = paste0(OutDir, "traceplots/mo1est_mo2pest.png"),width = 6, height = 5, units = "in")
+  
+  #Vulnerability to harvest
+  mcmc_trace(posterior, regex_pars = "vulest",facet_args = list(nrow = 2, labeller = label_parsed))+theme_bw()
+  ggsave(filename = paste0(OutDir, "traceplots/vulest.png"), width = 6, height = 5, units = "in")
+  
+  #Baseline fishing rate 
+  mcmc_trace(posterior, pars = "Fbase",facet_args = list(nrow = 1, labeller = label_parsed))+theme_bw()
+  ggsave(filename = paste0(OutDir, "traceplots/Fbase.png"),width = 6, height = 3, units = "in")
+  
+  #sd for prior on escapement observations 
+  mcmc_trace(posterior, pars = "lnS_sd",facet_args = list(nrow = 1, labeller = label_parsed))+theme_bw()
+  ggsave(filename = paste0(OutDir, "traceplots/lnS_sd.png"),width = 6, height = 3, units = "in")
+  
+  #Effect sizes of marine covariates
+  mcmc_trace(posterior, regex_pars = "M",facet_args = list(nrow = 4, labeller = label_parsed))+theme_bw()
+  ggsave(filename = paste0(OutDir, "traceplots/M_covariates.png"), width = 6, height = 10, units = "in")
+  
+  #Global maturation rate and sd
+  mcmc_trace(posterior, regex_pars = "bmatt",facet_args = list(nrow = 4, labeller = label_parsed))+theme_bw()
+  ggsave(filename = paste0(OutDir, "traceplots/bmatt_hierarchical.png"), width = 6, height = 10, units = "in")
+  mcmc_trace(posterior, regex_pars = "sd_matt",facet_args = list(nrow = 4, labeller = label_parsed))+theme_bw()
+  ggsave(filename = paste0(OutDir, "traceplots/sd_matt_hierarchical.png"),width = 6, height = 10, units = "in")
+  
+  #compensation ratio and log so
+  mcmc_trace(posterior, pars = c("cr", "so"),facet_args = list(nrow = 2, labeller = label_parsed))+theme_bw()
+  ggsave(filename = paste0(OutDir, "traceplots/cr_so.png"), width = 6, height = 5, units = "in")
+  
+  #Annual anomalies - plot long png 
+  #fishing anomaly
+  mcmc_trace(posterior, regex_pars = "fanomaly",facet_args = list(nrow = 10, labeller = label_parsed))+theme_bw()
+  ggsave(filename = paste0(OutDir, "traceplots/fanomaly.png"), width = 15, height = 20, units = "in")
+  #ocean mortality anomaly
+  mcmc_trace(posterior, regex_pars = "wto",facet_args = list(nrow = 10, labeller = label_parsed))+theme_bw()
+  ggsave(filename = paste0(OutDir, "traceplots/wto.png"), width = 15, height = 20, units = "in")
+  #freshwater anomaly
+  mcmc_trace(posterior, regex_pars = "wt\\[",facet_args = list(nrow = 10, labeller = label_parsed))+theme_bw()
+  ggsave(filename = paste0(OutDir, "traceplots/wt.png"), width = 15, height = 20, units = "in")
+  
+  #Need to create list of parameters to grep from correctly:
+  pars <- names(fit_chlm)
+  #Annual estimates of hierarchical maturation rates for each age class
+  for(i in 1:Ldyr){
+    #grep the maturation rates for each year and escape bracket with \\ in regex
+    #subset [2:5] to only plot the ages that are estimated 
+    p <- mcmc_trace(posterior, pars = c(pars[grep(paste0("matt\\[",i,","), pars)][2:5]),facet_args = list(nrow = 4, labeller = label_parsed))+theme_bw()
+    print(p)
+    ggsave(paste0(OutDir, "traceplots/matt/matt_",i,".png"), width = 6, height = 10, units = "in")
+  }
+  
+}
+
+
+
+
+
+
 #Plot estimated parameter outputs 
 #pull the parameters values the same way that they are pulled for the scenario runs 
 
