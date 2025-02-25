@@ -5,6 +5,7 @@ rm(list=ls(all=TRUE))
 library('scales')
 library("rstan")
 library(tidyverse)
+library(bayesplot)
 options(mc.cores=parallel::detectCores())
 rstan_options(auto_write=TRUE)
 
@@ -76,9 +77,15 @@ ParSaveList <- c("matt", "sd_matt", "bmattest", "cr", "so", "mo1est", "mo2pest",
 fit_chlm = stan(file="Code/CHLM.stan",data=model_data, init=inits, chains=nchains,iter=niter,include=T,pars=ParSaveList)
 
 #Check convergence with rhat values for estimated parameters
+#List names of estimated parameters 
+est_pars <- c("mo1est", "mo2pest", "vulest", "Fbase","lnS_sd","M", "bmatt", "sd_matt",
+              "cr", "so", "fanomaly", "wt", "matt")
+#Get rhat values 
 rhat <- summary(fit_chlm)$summary[,"Rhat"]
+#grep estimated parameters 
+rhat_estpars <- rhat[grep(paste(est_pars, collapse = "|"), names(rhat))] 
 #which ones are not converged
-rhat_unconverged <- which(rhat[1:length(rhat)-1]>1.05)
+rhat_unconverged <- rhat_estpars[!is.na(rhat_estpars > 1.05)]
 
 #Save fit as an rds - make sure out directory is set as expected
 save(fit_chlm, file = paste0(OutDir,"fit_Pusum.Rdata"))   
@@ -91,7 +98,6 @@ if(plot_traceplots == T){
   posterior <- rstan::extract(fit_chlm, permuted = F)
   
   #Plot traceplots for estimated parameters using bayesplot: 
-  library(bayesplot)
   color_scheme_set("mix-blue-pink")
   
   #Ocean mortality parameters
