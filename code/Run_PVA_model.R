@@ -17,64 +17,70 @@ source("Code/GetData.R")
 #Run the script that contains function to run scenarios 
 source("Code/functions.R")
 
+#Choose whether to run model or just read in the model object 
+RunModel = F
 
-####Call model
-nchains <- 3
-niter <- 6000
-
-#Compile model data
-model_data <- list(Nages = Nages, Ldyr = Ldyr, lht=lht, hatchsurv = hatchsurv, ssum = ssum, 
-                   fhist = fhist, bmatt = bmatt, fec = fec, vul = vul, mobase = mobase,
-                   cwtrelease = cwtrelease, cwtesc = cwtesc, cwtcat = cwtesc, RelRegF = RelRegF,
-                   obsescape = obsescape, propwildspawn = propwildspawn, hatchrelease = hatchrelease,
-                   seal = seal, hatch = hatch, temp = temp, bigm = bigm, cwtExp = cwtExp, 
-                   so_min = so_min, so_mu = so_mu, so_sd = so_sd, maxcr = maxcr, tiny = 1.0E-06)
-
-#Set up initial values 
-#Initial values for logit_matt
-ini_logit_matt <- matrix(nrow=Ldyr, ncol=Nages-2)
-#fill in initial values with calculated prior bmatt
-for(iyr in 1:Ldyr){
-  for(iage in 2:(Nages-1)){
-    ini_logit_matt[iyr,iage-1] <- log(bmatt[iage]/(1-bmatt[iage]))
+if(RunModel == T){
+  
+  ####Call model
+  nchains <- 3
+  niter <- 6000
+  
+  #Compile model data
+  model_data <- list(Nages = Nages, Ldyr = Ldyr, lht=lht, hatchsurv = hatchsurv, ssum = ssum, 
+                     fhist = fhist, bmatt = bmatt, fec = fec, vul = vul, mobase = mobase,
+                     cwtrelease = cwtrelease, cwtesc = cwtesc, cwtcat = cwtesc, RelRegF = RelRegF,
+                     obsescape = obsescape, propwildspawn = propwildspawn, hatchrelease = hatchrelease,
+                     seal = seal, hatch = hatch, temp = temp, bigm = bigm, cwtExp = cwtExp, 
+                     so_min = so_min, so_mu = so_mu, so_sd = so_sd, maxcr = maxcr, tiny = 1.0E-06)
+  
+  #Set up initial values 
+  #Initial values for logit_matt
+  ini_logit_matt <- matrix(nrow=Ldyr, ncol=Nages-2)
+  #fill in initial values with calculated prior bmatt
+  for(iyr in 1:Ldyr){
+    for(iage in 2:(Nages-1)){
+      ini_logit_matt[iyr,iage-1] <- log(bmatt[iage]/(1-bmatt[iage]))
+    }
   }
-}
+  
+  #Initial values for logit_bmatt
+  ini_logit_bmatt <- vector(length=Nages-2)
+  #fill in initial values with calculated prior bmatt
+  for(iage in 2:(Nages-1)){
+    ini_logit_bmatt[iage-1] <- log(bmatt[iage]/(1-bmatt[iage]))
+  }
+  
+  #Initial values for vulnerability
+  ini_logitvulest <- vector(length=2)
+  #fill in initial values with calculated prior vul
+  ini_logitvulest[1] <- log(vul[2]/(1-vul[2]))
+  ini_logitvulest[2] <- log(vul[3]/(1-vul[3]))
+  
+  #Generate full list of inits for all parameters 
+  inits1 <- list(mo1est = 3, mo2pest = 0.3, sd_matt = rep(0.5,Nages-2), est_logit_bmatt = ini_logit_bmatt,
+                 Fbase = 1.0, lnS_sd = 0.3, wt_sd = 1.0, wto_sd = 1.0, fanomaly_sd = 1.0, cr = 3.0,
+                 log_so = so_mu, logit_vulest = ini_logitvulest, Mseal = 0.01, 
+                 Mhatch = 0.01, Mtemp = 0, Mbigm = 0.01, wt = rep(0,Ldyr), wto = rep(0,Ldyr), fanomaly = rep(0,Ldyr))
+  
+  #Create list with inits for each chain
+  inits <- list(inits1, inits1, inits1)
+  
+  #Create list of parameters to save
+  ParSaveList <- c("matt", "sd_matt", "bmattest", "cr", "so", "mo1est", "mo2pest", "Mseal",
+                   "Mhatch", "Mtemp", "Mbigm", "vulest", "Fbase", "spawners", "tcatch", "cbrood",
+                   "ebrood", "wt", "wto", "fanomaly", "lnS_sd", "wt_sd", "wto_sd", "fanomaly_sd",
+                   "moplot", "movpa", "N", "eggtime", "memin", "mden")
+  
+  #Fit model 
+  fit_chlm = stan(file="Code/CHLM.stan",data=model_data, init=inits, chains=nchains,iter=niter,include=T,pars=ParSaveList)
+  
+  #Save fit as an rds - make sure out directory is set as expected
+  save(fit_chlm, file = paste0(OutDir,"fit_Pusum.Rdata"))   
+  
+  
+} else {load(file = paste0(OutDir,"fit_Pusum.Rdata")) }
 
-#Initial values for logit_bmatt
-ini_logit_bmatt <- vector(length=Nages-2)
-#fill in initial values with calculated prior bmatt
-for(iage in 2:(Nages-1)){
-  ini_logit_bmatt[iage-1] <- log(bmatt[iage]/(1-bmatt[iage]))
-}
-
-#Initial values for vulnerability
-ini_logitvulest <- vector(length=2)
-#fill in initial values with calculated prior vul
-ini_logitvulest[1] <- log(vul[2]/(1-vul[2]))
-ini_logitvulest[2] <- log(vul[3]/(1-vul[3]))
-
-#Generate full list of inits for all parameters 
-inits1 <- list(mo1est = 3, mo2pest = 0.3, sd_matt = rep(0.5,Nages-2), est_logit_bmatt = ini_logit_bmatt,
-               Fbase = 1.0, lnS_sd = 0.3, wt_sd = 1.0, wto_sd = 1.0, fanomaly_sd = 1.0, cr = 3.0,
-               log_so = so_mu, logit_vulest = ini_logitvulest, Mseal = 0.01, 
-               Mhatch = 0.01, Mtemp = 0, Mbigm = 0.01, wt = rep(0,Ldyr), wto = rep(0,Ldyr), fanomaly = rep(0,Ldyr))
-
-#Create list with inits for each chain
-inits <- list(inits1, inits1, inits1)
-
-#Create list of parameters to save
-ParSaveList <- c("matt", "sd_matt", "bmattest", "cr", "so", "mo1est", "mo2pest", "Mseal",
-                 "Mhatch", "Mtemp", "Mbigm", "vulest", "Fbase", "spawners", "tcatch", "cbrood",
-                 "ebrood", "wt", "wto", "fanomaly", "lnS_sd", "wt_sd", "wto_sd", "fanomaly_sd",
-                 "moplot", "movpa", "N", "eggtime", "memin", "mden")
-
-
-#Compile first 
-#mod <- stan_model("Code/CHLM.stan")
-#fit_chlm <- sampling(mod, data = ...)
-
-#Fit model 
-fit_chlm = stan(file="Code/CHLM.stan",data=model_data, init=inits, chains=nchains,iter=niter,include=T,pars=ParSaveList)
 
 #Check convergence with rhat values for estimated parameters
 #List names of estimated parameters 
@@ -86,13 +92,13 @@ rhat <- summary(fit_chlm)$summary[,"Rhat"]
 rhat_estpars <- rhat[grep(paste(est_pars, collapse = "|"), names(rhat))] 
 #which ones are not converged
 rhat_unconverged <- rhat_estpars[!is.na(rhat_estpars > 1.05)]
-
-#Save fit as an rds - make sure out directory is set as expected
-save(fit_chlm, file = paste0(OutDir,"fit_Pusum.Rdata"))   
+rhat_unconverged
 
 
+#Choose whether to plot traceplots for these estimated parameters:
 plot_traceplots = F
 
+#Plot traceplots 
 if(plot_traceplots == T){
   #Extract the posterior 
   posterior <- rstan::extract(fit_chlm, permuted = F)
@@ -268,3 +274,4 @@ ggsave(filename = paste0(OutDir, "Figures/estimated_marine_parameters.png"), wid
 
 #Get the exponentiated version:
 exp(-marine_pars[,1:5])
+

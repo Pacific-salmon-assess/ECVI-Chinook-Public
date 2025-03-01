@@ -6,8 +6,8 @@ This repository contains the following scripts used for fitting an age-structure
  
 Main scripts to interact with:
 1. Run_PVA_model.R will run the model and plot key parameter outputs included in Appendix F of the RPA. This script calls CHLM.stan, GetData.R and functions.R.
-2. PVA_Scenarios.R will run the forward simulations, compile the scenarios and plot the figures used in Elements 13 and 15 of the RPA. This script calls GetData.R and functions.R and also contains an option to run the model by calling Run_PVA_model.R.
-3. PVA_Sensitivity_Analysis.R will run the single-variable sensitivity analyses presented in Appendix G of the RPA. This script calls GetData.R and functions.R and also contains an option to run the model by calling Run_PVA_model.R
+2. PVA_Scenarios.R will run the forward simulations, compile the scenarios and plot the figures used in Elements 13 and 15 of the RPA. This script calls GetData.R and functions.R
+3. PVA_Sensitivity_Analysis.R will run the single-variable sensitivity analyses presented in Appendix G of the RPA. This script calls GetData.R and functions.R
 
 
 Supporting scripts: 

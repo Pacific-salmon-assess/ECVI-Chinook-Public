@@ -24,17 +24,13 @@ source("Code/functions.R")
 
 ####Running model#### 
 
-####Running model#### 
-if(RunModel == T){
-  #source the run pva model code 
-  source("code/Run_PVA_model.R")
-} else {load(file = paste0(OutDir,"fit_Pusum.Rdata")) }
+####Loading model#### 
+load(file = paste0(OutDir,"fit_Pusum.Rdata"))
 
 #Run the function that creates a dictionary to look up axis labels for each variable 
 axis_labels <- label_axes()
 #Refer to this to see a list of variable names: 
 axis_labels
-
 
 
 
