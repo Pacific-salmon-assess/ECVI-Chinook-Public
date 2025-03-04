@@ -91,7 +91,8 @@ rhat <- summary(fit_chlm)$summary[,"Rhat"]
 #grep estimated parameters 
 rhat_estpars <- rhat[grep(paste(est_pars, collapse = "|"), names(rhat))] 
 #which ones are not converged
-rhat_unconverged <- rhat_estpars[!is.na(rhat_estpars > 1.05)]
+rhat_unconverged <- rhat_estpars[which(rhat_estpars > 1.05)]
+#none
 rhat_unconverged
 
 
